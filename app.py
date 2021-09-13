@@ -16,7 +16,7 @@ today = datetime.now()
 # Gets API Credentials for Tweepy
 auth = OAuthHandler(getenv("consumer_key"), getenv("consumer_secret"))
 auth.set_access_token(getenv("access_key"), getenv("access_secret"))
-auth_api = API(auth)
+auth_api = API(auth, wait_on_rate_limit=True)
 
 # Dictionary to store tweets scraped
 tweets_dict = {
@@ -223,6 +223,7 @@ def get_timeframe():
 
     return time_frame, time_list
 
+""" Checks list and returns list and number of handles that are unavailable """
 
 def check_handles(handle_list):
     # Counts number of handles scraped
