@@ -17,7 +17,7 @@ Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the req
 pip install -r requirements.txt
 ```
 
-## Obtaining a Twitter Developer Key
+# Obtaining a Twitter Developer Key
 
 > If you do not have a Twitter handle you must first sign up for one.
 
@@ -38,7 +38,7 @@ access_secret = "YourAccessSecretHere"
 
 For more detailed instructions on how to obtain an api key, [click here.](https://towardsdatascience.com/how-to-access-twitters-api-using-tweepy-5a13a206683b)
 
-## Scraping Lists of Twitter Handles
+# Scraping Lists of Twitter Handles
 
 > When scraping multiple handles, this will pause after every 50 handles to prevent the user from exceeding the rate limit.
 
