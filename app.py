@@ -1,11 +1,12 @@
-from os import getcwd, getenv, makedirs, path, startfile
-import sys
-from dotenv import load_dotenv
-from datetime import datetime, timedelta
-from time import sleep
-from tweepy import API, OAuthHandler, TweepError
 import pandas as pd
+import sys
+
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
+from os import getcwd, getenv, makedirs, path, startfile
+from time import sleep
 from tqdm import tqdm
+from tweepy import API, OAuthHandler, TweepError
 
 # Loads .env file
 load_dotenv()
@@ -223,7 +224,9 @@ def get_timeframe():
 
     return time_frame, time_list
 
+
 """ Checks list and returns list and number of handles that are unavailable """
+
 
 def check_handles(handle_list):
     # Counts number of handles scraped
@@ -267,7 +270,7 @@ while single_multi not in (range(1, 4)):
     if single_multi in (range(1, 4)):
         continue
 
-# Get Account Handle(s) from user
+# Get Account Handle(s) from user then ethier checks or scrapes the handle(s)
 
 if single_multi == 1:
     handle = input(
@@ -285,3 +288,13 @@ elif single_multi == 2:
 else:
     handle_list = load("Account Lists/handles.txt")
     check_handles(handle_list)
+    scrape_check = input("\nDo you want to scrape from this list? (y or n): \n")
+    if scrape_check == "y":
+        filename = input("\nEnter a name for the excel file (do NOT include .xlsx):\n")
+        time_frame, time_list = get_timeframe()
+        get_tweets_multi(handle_list, time_frame, time_list)
+        format_tweets(filename, tweets_dict)
+    else:
+        print(
+            f"\nRoger. You can modify the list of handles by editing {cwd}/Account Lists/handles.txt"
+        )

@@ -5,7 +5,7 @@
 
 A tool to scrape tweets from a single handle or a list of handles. Please note that this only scrapes up to the 500 recent tweets.
 
-You can also check a list of handles to see if any are are suspended, private, or incorrect.
+You can also check a list of handles before scraping them to see if any are are suspended, private, or incorrect.
 
 All tweets are saved to a formatted excel file.
 
@@ -36,7 +36,7 @@ access_secret = "YourAccessSecretHere"
 
 5. Save the file.
 
-For more detailed instructions on how to obtain an api key, [click here.](https://towardsdatascience.com/how-to-access-twitters-api-using-tweepy-5a13a206683b)
+More detailed instructions on how to obtain an api key can be found [here.](https://towardsdatascience.com/how-to-access-twitters-api-using-tweepy-5a13a206683b)
 
 # Scraping Lists of Twitter Handles
 
