@@ -1,5 +1,3 @@
-from dotenv import load_dotenv
-
 from tweet_funcs import (
     cwd,
     check_handles,
@@ -13,8 +11,6 @@ from tweet_funcs import (
 
 
 if __name__ == "__main__":
-    # Loads .env file
-    load_dotenv()
 
     single_multi = 0
 
@@ -27,7 +23,7 @@ if __name__ == "__main__":
         if single_multi in (range(1, 4)):
             continue
 
-    # Get Account Handle(s) from user then ethier checks or scrapes the handle(s)
+    # Prompt user for Account Handle(s) then checks or scrapes them
 
     if single_multi == 1:
         handle = input(

@@ -2,15 +2,19 @@ import pandas as pd
 import sys
 
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
 from os import makedirs, getcwd, getenv, path, startfile
 from time import sleep
 from tqdm import tqdm
 from tweepy import API, OAuthHandler, TweepError
 
+# Loads .env file
+load_dotenv()
+
 cwd = getcwd()
 today = datetime.now()
 
-    # Gets API Credentials for Tweepy
+# Gets API Credentials for Tweepy
 auth = OAuthHandler(getenv("consumer_key"), getenv("consumer_secret"))
 auth.set_access_token(getenv("access_key"), getenv("access_secret"))
 auth_api = API(auth, wait_on_rate_limit=True)
@@ -251,4 +255,3 @@ def check_handles(handle_list):
         print(
             "\nNone of the handles on the list are suspended, private, or incorrect.\n"
         )
-
