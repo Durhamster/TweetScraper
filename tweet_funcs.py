@@ -1,12 +1,11 @@
 import pandas as pd
 import sys
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from dotenv import load_dotenv
 from os import makedirs, getcwd, getenv, path, startfile
-from time import sleep
 from tqdm import tqdm
-from tweepy import API, OAuthHandler, TweepError
+from tweepy import API, Cursor, OAuthHandler, TweepyException
 
 # Loads .env file
 load_dotenv()
@@ -35,12 +34,13 @@ accounts_dict = {
     "Handle": [],
     "URL": [],
     "Followers": [],
+    "Verified": [],
 }
 
 """ Gets tweets from single handle """
 
 
-def get_tweets_single(handle, time_frame, time_list):
+def get_tweets_single(handle):
     try:
         # Scrapes for each handle
         tweets = auth_api.user_timeline(
@@ -48,18 +48,13 @@ def get_tweets_single(handle, time_frame, time_list):
         )
 
         for tweet in tweets[:500]:
-            if tweet.created_at >= time_list[int(time_frame)]:
-                tweets_dict["Date"].append(tweet.created_at)
-                tweets_dict["Account Name"].append(tweet.user.name)
-                tweets_dict["Handle"].append(handle)
-                tweets_dict["URL"].append(
-                    f"https://twitter.com/{handle}/status/{tweet.id}"
-                )
-                tweets_dict["Likes"].append(tweet.favorite_count)
-                tweets_dict["Retweets"].append(tweet.retweet_count)
-                tweets_dict["Text"].append(tweet.full_text)
-            else:
-                pass
+            tweets_dict["Date"].append(tweet.created_at)
+            tweets_dict["Account Name"].append(tweet.user.name)
+            tweets_dict["Handle"].append(handle)
+            tweets_dict["URL"].append(f"https://twitter.com/{handle}/status/{tweet.id}")
+            tweets_dict["Likes"].append(tweet.favorite_count)
+            tweets_dict["Retweets"].append(tweet.retweet_count)
+            tweets_dict["Text"].append(tweet.full_text)
     except Exception:
         sys.exit("\nError. Account handle is suspended, private, or nonexistent.\n")
 
@@ -67,9 +62,7 @@ def get_tweets_single(handle, time_frame, time_list):
 """ Gets tweets from a list of handles """
 
 
-def get_tweets_multi(handle_list, time_frame, time_list):
-    # Counts number of handles scraped
-    count = 0
+def get_tweets_multi(handle_list):
     # Counts number of handles unable to scrape
     except_count = 0
     except_list = []
@@ -83,28 +76,20 @@ def get_tweets_multi(handle_list, time_frame, time_list):
                     include_rts=True,
                     tweet_mode="extended",
                 )
-                count += 1
                 for tweet in tweets[:500]:
-                    if tweet.created_at >= time_list[int(time_frame)]:
-                        tweets_dict["Date"].append(tweet.created_at)
-                        tweets_dict["Account Name"].append(tweet.user.name)
-                        tweets_dict["Handle"].append(handle)
-                        tweets_dict["URL"].append(
-                            f"https://twitter.com/{handle}/status/{tweet.id}"
-                        )
-                        tweets_dict["Likes"].append(tweet.favorite_count)
-                        tweets_dict["Retweets"].append(tweet.retweet_count)
-                        tweets_dict["Text"].append(tweet.full_text)
-                    else:
-                        pass
+                    tweets_dict["Date"].append(tweet.created_at)
+                    tweets_dict["Account Name"].append(tweet.user.name)
+                    tweets_dict["Handle"].append(handle)
+                    tweets_dict["URL"].append(
+                        f"https://twitter.com/{handle}/status/{tweet.id}"
+                    )
+                    tweets_dict["Likes"].append(tweet.favorite_count)
+                    tweets_dict["Retweets"].append(tweet.retweet_count)
+                    tweets_dict["Text"].append(tweet.full_text)
                 # Update progress bar
                 pbar.update(1)
 
-                # Pauses periodically to avoid hitting tweepy's rate limit
-                if count == 50:
-                    sleep(60)
-                    count -= 50
-            except TweepError:
+            except TweepyException:
                 except_count += 1
                 except_list.append(handle)
                 pass
@@ -145,6 +130,8 @@ def format_tweets(handle, tweets_dict):
     file_name = f"Data/{handle} {today.month}-{today.day}.xlsx"
     # Formats Tweets into Excel
     df = pd.DataFrame(tweets_dict)
+    # Removes timezone from Date to prevent excel issues
+    df["Date"] = df["Date"].apply(lambda a: pd.to_datetime(a).date())
     writer = pd.ExcelWriter(file_name, engine="xlsxwriter")
     df.to_excel(
         writer,
@@ -184,63 +171,20 @@ def format_tweets(handle, tweets_dict):
         pass
 
 
-""" Gets the timeframe for the tweets to be scraped """
-
-
-def get_timeframe():
-    # Filters out tweets not from the past 24 hours or past weekend
-    today, yesterday, twodays, threedays, oneweek, twoweeks, onemonth, all500 = [
-        datetime.now(),
-        datetime.now() - timedelta(days=1),
-        datetime.now() - timedelta(days=3),
-        datetime.now() - timedelta(days=4),
-        datetime.now() - timedelta(days=7),
-        datetime.now() - timedelta(days=14),
-        datetime.now() - timedelta(days=30),
-        datetime.now() - timedelta(days=365),
-    ]
-    time_frame = " "
-    time_list = [
-        today,
-        yesterday,
-        twodays,
-        threedays,
-        oneweek,
-        twoweeks,
-        onemonth,
-        all500,
-    ]
-
-    # Prompt user for time frame to scrape from
-    while time_frame not in (range(1, 8)):
-        time_frame = int(
-            input(
-                "\nEnter a Time Frame:\n 1) The Past 24 Hours\n 2) 48 Hours\n 3) 72 Hours\n 4) Week\n 5) Two Weeks\n 6) One Month\n 7) Last 500 Tweets\n \n"
-            )
-        )
-        if time_frame in (range(1, 8)):
-            continue
-
-    return time_frame, time_list
-
-
 """ Checks list and returns list and number of handles that are unavailable """
 
 
 def check_handles(handle_list):
-    # Counts number of handles scraped
-    count = 0
     # Counts number of handles unable to scrape
     except_count = 0
     except_list = []
     with tqdm(total=len(handle_list), file=sys.stdout) as pbar:
         for handle in handle_list:
-            count += 1
             try:
-                auth_api.get_user(handle)
+                auth_api.get_user(screen_name=handle)
                 # Update progress bar
                 pbar.update(1)
-            except TweepError:
+            except TweepyException:
                 except_count += 1
                 except_list.append(handle)
                 pass
@@ -255,3 +199,96 @@ def check_handles(handle_list):
         print(
             "\nNone of the handles on the list are suspended, private, or incorrect.\n"
         )
+
+
+""" Get the list of followers for a single account """
+
+
+def get_follower_list(handle):
+
+    # Gets follower count of the user
+    user = auth_api.get_user(screen_name=handle)
+    numb_followers = user.followers_count
+    print(f"Fetching names for {numb_followers} followers...\n")
+    # Gets the handles for all followers of target handle
+    follower_list = []
+    # Progress bar
+    with tqdm(total=numb_followers, file=sys.stdout) as pbar:
+        for i in range(1):
+            for follower in Cursor(auth_api.get_followers, screen_name=handle).items(
+                numb_followers
+            ):
+                try:
+                    follower_list.append(follower.screen_name)
+                    pbar.update(1)
+
+                except TweepyException:
+                    pbar.update(1)
+
+                    pass
+
+    return follower_list
+
+
+""" Gets the follower count of a list of handles """
+
+
+def get_follower_count(filename, account_list):
+    # Progress bar
+    with tqdm(total=len(account_list), file=sys.stdout) as pbar:
+        for i in range(1):
+            # Scrapes followers for each handle
+            for handle in account_list:
+                try:
+                    users = auth_api.get_user(screen_name=handle)
+                    accounts_dict["Handle"].append(handle)
+                    accounts_dict["URL"].append(f"https://twitter.com/{handle}")
+                    accounts_dict["Followers"].append(users.followers_count)
+                    accounts_dict["Verified"].append(users.verified)
+
+                    pbar.update(1)
+                except TweepyException:
+                    accounts_dict["Handle"].append(handle)
+                    accounts_dict["URL"].append(f"https://twitter.com/{handle}")
+                    accounts_dict["Followers"].append("N/A")
+                    accounts_dict["Verified"].append("N/A")
+
+                    pass
+
+            # Formats Results into Excel
+            df = pd.DataFrame(accounts_dict)
+            writer = pd.ExcelWriter(filename, engine="xlsxwriter")
+            df.to_excel(
+                writer,
+                sheet_name="Accounts",
+                encoding="utf-8",
+                index=False,
+            )
+            workbook = writer.book
+            worksheet = writer.sheets["Accounts"]
+            worksheet.freeze_panes(1, 0)
+            worksheet.autofilter("A1:C1")
+            top_row = workbook.add_format(
+                {"bg_color": "black", "font_color": "white"}
+            )  # sets the top row colors
+            num_format = workbook.add_format({"num_format": "#,##0"})
+
+            worksheet.set_column("A:A", 18)
+            worksheet.set_column("B:B", 20)
+            worksheet.set_column("C:C", 10, num_format)
+
+            # Sets the top row/header font and color
+            for col_num, value in enumerate(df.columns.values):
+                worksheet.write(0, col_num, value, top_row)
+
+            writer.save()
+
+    print(f"Data saved to {cwd}\{filename}\n")
+
+    # Asks user if they want to open the file
+    opensheet = input("Do you want to open the excel file? (y or n): \n").lower()
+
+    if opensheet == "y":
+        startfile(f"{cwd}/{filename}")
+    else:
+        pass

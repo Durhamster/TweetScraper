@@ -3,11 +3,17 @@
 ![Python Version](https://img.shields.io/pypi/pyversions/pandas?style=for-the-badge)
 ![License](https://img.shields.io/github/license/Durhamster/TweetScraper?style=for-the-badge)
 
-A tool to scrape tweets from a single handle or a list of handles. Please note that this only scrapes up to the 500 recent tweets.
+A script using the Twitter API to do the following:
 
-You can also check a list of handles before scraping them to see if any are are suspended, private, or incorrect.
+1. Scrape a single account
+2. Scrape a list of accounts
+3. Get the follower count for a list of accounts
+4. Check a list of handles to see if any are suspended, private, or incorrect.
 
-All tweets are saved to a formatted excel file.
+
+All tweets and follower counts are saved to a formatted excel file.
+
+Please note that this only scrapes up to the 500 recent tweets. This can be changed in the script itself.
 
 # Installation
 
@@ -40,7 +46,7 @@ More detailed instructions on how to obtain an api key can be found [here.](http
 
 # Scraping Lists of Twitter Handles
 
-> When scraping multiple handles, this will pause after every 50 handles to prevent the user from exceeding the rate limit.
+> When scraping multiple handles, this script will pause periodically to prevent the user from exceeding the rate limit.
 
 To change the list of handles to be scraped, open the handles.txt file under the Account Lists directory. Do NOT include the '@' sign. Make sure to list one handle per line.
 
