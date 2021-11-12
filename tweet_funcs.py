@@ -3,7 +3,7 @@ import sys
 
 from datetime import datetime
 from dotenv import load_dotenv
-from os import makedirs, getcwd, getenv, path, startfile
+from os import getcwd, getenv, startfile
 from tqdm import tqdm
 from tweepy import API, Cursor, OAuthHandler, TweepyException
 
@@ -123,10 +123,6 @@ def load_text(file):
 
 def format_tweets(handle, tweets_dict):
 
-    # Creates scraped data folder if it does not exist
-    if not path.exists("Data/"):
-        makedirs("Data/")
-
     file_name = f"Data/{handle} {today.month}-{today.day}.xlsx"
     # Formats Tweets into Excel
     df = pd.DataFrame(tweets_dict)
@@ -204,30 +200,104 @@ def check_handles(handle_list):
 """ Get the list of followers for a single account """
 
 
-def get_follower_list(handle):
+def get_follower_list(handle, filename):
 
     # Gets follower count of the user
     user = auth_api.get_user(screen_name=handle)
-    numb_followers = user.followers_count
-    print(f"Fetching names for {numb_followers} followers...\n")
-    # Gets the handles for all followers of target handle
-    follower_list = []
+    num_followers = user.followers_count
+    print(f"Fetching names for {num_followers} followers...\n")
+    # Keeps count for periodic saving
+    count = 0
+
+    count_stop_points = [
+        int(num_followers / 10),
+        int((num_followers / 10) * 2),
+        int((num_followers / 10) * 3),
+        int((num_followers / 10) * 4),
+        int((num_followers / 10) * 5),
+        int((num_followers / 10) * 6),
+        int((num_followers / 10) * 7),
+        int((num_followers / 10) * 8),
+        int((num_followers / 10) * 9),
+        num_followers,
+    ]
+    # Count number of suspended or banned accounts
+    dead_count = 0
+    # Adds # at the end of multiple sheets to prevent saving over
+    sheet_count = 0
     # Progress bar
-    with tqdm(total=numb_followers, file=sys.stdout) as pbar:
+    with tqdm(total=num_followers, file=sys.stdout) as pbar:
         for i in range(1):
             for follower in Cursor(auth_api.get_followers, screen_name=handle).items(
-                numb_followers
+                num_followers
             ):
                 try:
-                    follower_list.append(follower.screen_name)
+
+                    accounts_dict["Screen Name"].append(follower.name)
+                    accounts_dict["Handle"].append(follower.screen_name)
+                    accounts_dict["URL"].append(
+                        f"https://twitter.com/{follower.screen_name}"
+                    )
+                    accounts_dict["Followers"].append(follower.followers_count)
+                    accounts_dict["Verified"].append(follower.verified)
+                    count += 1
+
                     pbar.update(1)
+
+                    if count in count_stop_points:
+                        sheet_count += 1
+                        print("\nStop point reached - saving CSV file...\n")
+                        follow_df = pd.DataFrame(accounts_dict)
+                        follow_df.to_csv(
+                            f"Data/Scraped Data/Checkpoints/{handle}_Follower_List{sheet_count}.csv"
+                        )
 
                 except TweepyException:
+                    count += 1
+                    dead_count += 1
                     pbar.update(1)
 
-                    pass
+        print(f"\nNumber of suspended/banned/deleted accounts: {dead_count}\n")
 
-    return follower_list
+    # Formats Results into Excel
+    df = pd.DataFrame(accounts_dict)
+    writer = pd.ExcelWriter(filename, engine="xlsxwriter")
+    df.to_excel(
+        writer,
+        sheet_name="Accounts",
+        encoding="utf-8",
+        index=False,
+    )
+    workbook = writer.book
+    worksheet = writer.sheets["Accounts"]
+    worksheet.freeze_panes(1, 0)
+    worksheet.autofilter("A1:C1")
+    top_row = workbook.add_format(
+        {"bg_color": "black", "font_color": "white"}
+    )  # sets the top row colors
+    num_format = workbook.add_format({"num_format": "#,##0"})
+
+    worksheet.set_column("A:A", 18)
+    worksheet.set_column("B:B", 20)
+    worksheet.set_column("C:C", 10, num_format)
+
+    # Sets the top row/header font and color
+    for col_num, value in enumerate(df.columns.values):
+        worksheet.write(0, col_num, value, top_row)
+
+    writer.save()
+
+    print(f"Data saved to {cwd}\{filename}\n")
+
+    # Asks user if they want to open the file
+    opensheet = input("Do you want to open the excel file? (y or n): \n").lower()
+
+    if opensheet == "y":
+        startfile(f"{cwd}/{filename}")
+    else:
+        pass
+
+    return accounts_dict
 
 
 """ Gets the follower count of a list of handles """

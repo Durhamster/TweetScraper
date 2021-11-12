@@ -1,3 +1,4 @@
+from os import makedirs, path
 from tweet_funcs import (
     cwd,
     check_handles,
@@ -12,6 +13,10 @@ from tweet_funcs import (
 
 
 if __name__ == "__main__":
+
+    # Creates scraped data folder if it does not exist
+    if not path.exists("Data/Checkpoints"):
+        makedirs("Data/Checkpoints")
 
     single_multi = 0
 
@@ -52,7 +57,10 @@ if __name__ == "__main__":
     elif single_multi == 4:
         user_warning = input(
             "\nWARNING: For accounts with 5,0000+ followers this"
-            " may take multiple hours. Do you want to continue? (y or n)\n"
+            " may take multiple hours. During this there will be checkpoints created everytime the number "
+            "of accounts scraped reaches 1/10 of the list of followers. These can be found as CSV files under "
+            "the data directory, in a directory called 'Checkpoints'. "
+            " Do you want to continue? (y or n)\n"
         )
         if user_warning == "y":
             handle = input(
@@ -61,9 +69,7 @@ if __name__ == "__main__":
             filename = input(
                 "\nEnter a name for the excel file (do NOT include .xlsx):\n"
             )
-            get_follower_list(handle)
-            handle_list = get_follower_count()
-            get_follower_count(filename, handle_list)
+            get_follower_list(handle, filename)
         else:
             pass
 
