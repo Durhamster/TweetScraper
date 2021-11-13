@@ -31,6 +31,7 @@ tweets_dict = {
 
 # Dictionary to store accounts follower count
 accounts_dict = {
+    "Screen Name": [],
     "Handle": [],
     "URL": [],
     "Followers": [],
@@ -311,6 +312,7 @@ def get_follower_count(filename, account_list):
             for handle in account_list:
                 try:
                     users = auth_api.get_user(screen_name=handle)
+                    accounts_dict["Screen Name"].append(users.name)
                     accounts_dict["Handle"].append(handle)
                     accounts_dict["URL"].append(f"https://twitter.com/{handle}")
                     accounts_dict["Followers"].append(users.followers_count)
@@ -318,6 +320,7 @@ def get_follower_count(filename, account_list):
 
                     pbar.update(1)
                 except TweepyException:
+                    accounts_dict["Screen Name"].append(handle.name)
                     accounts_dict["Handle"].append(handle)
                     accounts_dict["URL"].append(f"https://twitter.com/{handle}")
                     accounts_dict["Followers"].append("N/A")
