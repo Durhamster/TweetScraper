@@ -250,7 +250,7 @@ def get_follower_list(handle, filename):
                         print("\nStop point reached - saving CSV file...\n")
                         follow_df = pd.DataFrame(accounts_dict)
                         follow_df.to_csv(
-                            f"Data/Scraped Data/Checkpoints/{handle}_Follower_List{sheet_count}.csv"
+                            f"Data/Checkpoints/{handle}_Follower_List{sheet_count}.csv"
                         )
 
                 except TweepyException:
