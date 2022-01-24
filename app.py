@@ -15,8 +15,8 @@ from tweet_funcs import (
 if __name__ == "__main__":
 
     # Creates scraped data folder if it does not exist
-    if not path.exists("Data/Checkpoints"):
-        makedirs("Data/Checkpoints")
+    if not path.exists("Data"):
+        makedirs("Data")
 
     single_multi = 0
 
@@ -26,9 +26,9 @@ if __name__ == "__main__":
                 "\nSelect an option:\n"
                 "1) Scrape a single account\n"
                 "2) Scrape multiple accounts\n"
-                "3) Follower Counts from a list of handles\n"
-                "4) Follower List and follower count for single account\n"
-                "5) Check Handles\n"
+                "3) Follower counts from a list of handles\n"
+                "4) Follower list and follower count for a single account\n"
+                "5) Check handles\n"
             )
         )
         if single_multi in (range(1, 6)):
@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     if single_multi == 1:
         handle = input(
-            "\nEnter the handle of the account you wish to scrape from (Do not include the @):\n"
+            "\nEnter the handle of the account you wish to scrape from (do NOT include the @):\n"
         )
         get_tweets_single(handle)
         format_tweets(handle, tweets_dict)
@@ -57,26 +57,27 @@ if __name__ == "__main__":
     elif single_multi == 4:
         user_warning = input(
             "\nWARNING: For accounts with 5,0000+ followers this"
-            " may take multiple hours. During this there will be checkpoints created everytime the number "
-            "of accounts scraped reaches 1/10 of the list of followers. These can be found as CSV files under "
+            " may take multiple hours. During this there will be checkpoints created each time the number "
+            "of accounts scraped reaches 10 percent of the list of followers. These can be found as CSV files under "
             "the data directory, in a directory called 'Checkpoints'. "
             " Do you want to continue? (y or n)\n"
-        )
+        ).lower()
         if user_warning == "y":
+            if not path.exists("Data/Checkpoints"):
+                makedirs("Data/Checkpoints")
             handle = input(
                 "\nEnter the handle of the account you wish to scrape from (Do not include the @):\n"
             )
-            filename = input(
-                "\nEnter a name for the excel file (do NOT include .xlsx):\n"
-            )
-            get_follower_list(handle, filename)
+            get_follower_list(handle)
         else:
             pass
 
     else:
         handle_list = load_text("Account Lists/handles.txt")
         check_handles(handle_list)
-        scrape_check = input("\nDo you want to scrape from this list? (y or n): \n")
+        scrape_check = input(
+            "\nDo you want to scrape from this list? (y or n):\n"
+        ).lower()
         if scrape_check == "y":
             filename = input(
                 "\nEnter a name for the excel file (do NOT include .xlsx):\n"

@@ -4,6 +4,7 @@ import sys
 from datetime import datetime
 from dotenv import load_dotenv
 from os import getcwd, getenv, startfile
+from time import sleep
 from tqdm import tqdm
 from tweepy import API, Cursor, OAuthHandler, TweepyException
 
@@ -60,7 +61,7 @@ def get_tweets_single(handle):
         sys.exit("\nError. Account handle is suspended, private, or nonexistent.\n")
 
 
-""" Gets tweets from a list of handles """
+"""Gets tweets from a list of handles"""
 
 
 def get_tweets_multi(handle_list):
@@ -103,7 +104,7 @@ def get_tweets_multi(handle_list):
         print(f"{except_list}\n")
 
 
-""" Load a text file as a list."""
+"""Load a text file as a list"""
 
 
 def load_text(file):
@@ -123,13 +124,12 @@ def load_text(file):
 
 
 def format_tweets(handle, tweets_dict):
-
-    file_name = f"Data/{handle} {today.month}-{today.day}.xlsx"
+    filename = f"Data/{handle} {today.month}-{today.day}.xlsx"
     # Formats Tweets into Excel
     df = pd.DataFrame(tweets_dict)
     # Removes timezone from Date to prevent excel issues
     df["Date"] = df["Date"].apply(lambda a: pd.to_datetime(a).date())
-    writer = pd.ExcelWriter(file_name, engine="xlsxwriter")
+    writer = pd.ExcelWriter(filename, engine="xlsxwriter")
     df.to_excel(
         writer,
         sheet_name=handle,
@@ -157,15 +157,9 @@ def format_tweets(handle, tweets_dict):
 
     writer.save()
 
-    print(f"Data saved to {cwd}\{file_name}\n")
+    print(f"Data saved to {cwd}\{filename}\n")
 
-    # Asks user if they want to open the file
-    opensheet = input("Press y to open the file:\n").lower()
-
-    if opensheet == "y":
-        startfile(f"{cwd}/{file_name}")
-    else:
-        pass
+    open_sheet(cwd, filename)
 
 
 """ Checks list and returns list and number of handles that are unavailable """
@@ -201,8 +195,8 @@ def check_handles(handle_list):
 """ Get the list of followers for a single account """
 
 
-def get_follower_list(handle, filename):
-
+def get_follower_list(handle):
+    filename = f"Data/{handle} followers {today.month}-{today.day}.xlsx"
     # Gets follower count of the user
     user = auth_api.get_user(screen_name=handle)
     num_followers = user.followers_count
@@ -290,13 +284,7 @@ def get_follower_list(handle, filename):
 
     print(f"Data saved to {cwd}\{filename}\n")
 
-    # Asks user if they want to open the file
-    opensheet = input("Do you want to open the excel file? (y or n): \n").lower()
-
-    if opensheet == "y":
-        startfile(f"{cwd}/{filename}")
-    else:
-        pass
+    open_sheet(cwd, filename)
 
     return accounts_dict
 
@@ -358,10 +346,18 @@ def get_follower_count(filename, account_list):
 
     print(f"Data saved to {cwd}\{filename}\n")
 
-    # Asks user if they want to open the file
+    open_sheet(cwd, filename)
+
+
+""" Prompts user to open the file"""
+
+
+def open_sheet(cwd, filename):
     opensheet = input("Do you want to open the excel file? (y or n): \n").lower()
 
     if opensheet == "y":
         startfile(f"{cwd}/{filename}")
+        print("Opening file...\n")
+        sleep(3)
     else:
         pass
