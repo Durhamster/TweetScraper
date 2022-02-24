@@ -10,7 +10,7 @@ A script using the Twitter API to do the following:
 3. Get the follower count for a list of accounts
 4. Check a list of handles to see if any are suspended, private, or incorrect.
 
-All tweets and follower counts are saved to a formatted excel (.xlsx) file.
+All tweets and follower counts are saved to a formatted excel (.xlsx) file. All URLs will be converted to strings if they exceed the limit in excel (65,530).
 
 > Please note that this only scrapes up to the 500 recent tweets. This can be changed in the script itself.
 

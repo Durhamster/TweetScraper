@@ -44,15 +44,15 @@ if __name__ == "__main__":
         format_tweets(handle, tweets_dict)
 
     elif single_multi == 2:
-        filename = input("\nEnter a name for the excel file (do NOT include .xlsx):\n")
+        file_name = input("\nEnter a name for the excel file (do NOT include .xlsx):\n")
         handle_list = load_text("Account Lists/handles.txt")
         get_tweets_multi(handle_list)
-        format_tweets(filename, tweets_dict)
+        format_tweets(file_name, tweets_dict)
 
     elif single_multi == 3:
-        filename = input("\nEnter a name for the excel file (do NOT include .xlsx):\n")
+        file_name = input("\nEnter a name for the excel file (do NOT include .xlsx):\n")
         handle_list = load_text("Account Lists/handles.txt")
-        get_follower_count(filename, handle_list)
+        get_follower_count(file_name, handle_list)
 
     elif single_multi == 4:
         user_warning = input(
@@ -79,11 +79,11 @@ if __name__ == "__main__":
             "\nDo you want to scrape from this list? (y or n):\n"
         ).lower()
         if scrape_check == "y":
-            filename = input(
+            file_name = input(
                 "\nEnter a name for the excel file (do NOT include .xlsx):\n"
             )
             get_tweets_multi(handle_list)
-            format_tweets(filename, tweets_dict)
+            format_tweets(file_name, tweets_dict)
         else:
             print(
                 f"\nRoger. You can modify the list of handles by editing {cwd}/Account Lists/handles.txt"

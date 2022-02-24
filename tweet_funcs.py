@@ -39,6 +39,25 @@ accounts_dict = {
     "Verified": [],
 }
 
+""" Converts URLs to strings if Excel limit is exceeded (65,530)"""
+
+
+def check_url_count(df, file_name):
+    if len(df.index) >= 65530:
+        writer = pd.ExcelWriter(
+            file_name, engine="xlsxwriter", options={"strings_to_urls": False}
+        )
+
+        print(
+            "\nThis file will exceed the URL limit in excel (65,530). Converting all URLs to strings...\n"
+        )
+
+    else:
+        writer = pd.ExcelWriter(file_name, engine="xlsxwriter")
+
+    return writer
+
+
 """ Gets tweets from single handle """
 
 
@@ -124,12 +143,14 @@ def load_text(file):
 
 
 def format_tweets(handle, tweets_dict):
-    filename = f"Data/{handle} {today.month}-{today.day}.xlsx"
+    file_name = f"Data/{handle} {today.month}-{today.day}.xlsx"
     # Formats Tweets into Excel
     df = pd.DataFrame(tweets_dict)
     # Removes timezone from Date to prevent excel issues
     df["Date"] = df["Date"].apply(lambda a: pd.to_datetime(a).date())
-    writer = pd.ExcelWriter(filename, engine="xlsxwriter")
+
+    writer = check_url_count(df, file_name)
+
     df.to_excel(
         writer,
         sheet_name=handle,
@@ -157,9 +178,9 @@ def format_tweets(handle, tweets_dict):
 
     writer.save()
 
-    print(f"Data saved to {cwd}\{filename}\n")
+    print(f"Data saved to {cwd}\{file_name}\n")
 
-    open_sheet(cwd, filename)
+    open_sheet(cwd, file_name)
 
 
 """ Checks list and returns list and number of handles that are unavailable """
@@ -196,7 +217,7 @@ def check_handles(handle_list):
 
 
 def get_follower_list(handle):
-    filename = f"Data/{handle} followers {today.month}-{today.day}.xlsx"
+    file_name = f"Data/{handle} followers {today.month}-{today.day}.xlsx"
     # Gets follower count of the user
     user = auth_api.get_user(screen_name=handle)
     num_followers = user.followers_count
@@ -256,7 +277,9 @@ def get_follower_list(handle):
 
     # Formats Results into Excel
     df = pd.DataFrame(accounts_dict)
-    writer = pd.ExcelWriter(filename, engine="xlsxwriter")
+
+    writer = check_url_count(df, file_name)
+
     df.to_excel(
         writer,
         sheet_name="Accounts",
@@ -282,9 +305,9 @@ def get_follower_list(handle):
 
     writer.save()
 
-    print(f"Data saved to {cwd}\{filename}\n")
+    print(f"Data saved to {cwd}\{file_name}\n")
 
-    open_sheet(cwd, filename)
+    open_sheet(cwd, file_name)
 
     return accounts_dict
 
@@ -292,7 +315,7 @@ def get_follower_list(handle):
 """ Gets the follower count of a list of handles """
 
 
-def get_follower_count(filename, account_list):
+def get_follower_count(file_name, account_list):
     # Progress bar
     with tqdm(total=len(account_list), file=sys.stdout) as pbar:
         for i in range(1):
@@ -318,7 +341,9 @@ def get_follower_count(filename, account_list):
 
             # Formats Results into Excel
             df = pd.DataFrame(accounts_dict)
-            writer = pd.ExcelWriter(filename, engine="xlsxwriter")
+
+            writer = check_url_count(df, file_name)
+
             df.to_excel(
                 writer,
                 sheet_name="Accounts",
@@ -344,19 +369,19 @@ def get_follower_count(filename, account_list):
 
             writer.save()
 
-    print(f"Data saved to {cwd}\{filename}\n")
+    print(f"Data saved to {cwd}\{file_name}\n")
 
-    open_sheet(cwd, filename)
+    open_sheet(cwd, file_name)
 
 
 """ Prompts user to open the file"""
 
 
-def open_sheet(cwd, filename):
+def open_sheet(cwd, file_name):
     opensheet = input("Do you want to open the excel file? (y or n): \n").lower()
 
     if opensheet == "y":
-        startfile(f"{cwd}/{filename}")
+        startfile(f"{cwd}/{file_name}")
         print("Opening file...\n")
         sleep(3)
     else:
