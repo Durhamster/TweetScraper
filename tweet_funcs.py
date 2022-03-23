@@ -45,7 +45,9 @@ accounts_dict = {
 def check_url_count(df, file_name):
     if len(df.index) >= 65530:
         writer = pd.ExcelWriter(
-            file_name, engine="xlsxwriter", options={"strings_to_urls": False}
+            file_name,
+            engine="xlsxwriter",
+            engine_kwargs={"options": {"strings_to_urls": False}},
         )
 
         print(
@@ -87,7 +89,7 @@ def get_tweets_multi(handle_list):
     # Counts number of handles unable to scrape
     except_count = 0
     except_list = []
-    with tqdm(total=len(handle_list), file=sys.stdout) as pbar:
+    with tqdm(total=len(handle_list), file=sys.stdout, colour="GREEN") as pbar:
         # Scrapes for each handle
         for handle in handle_list:
             try:
@@ -190,7 +192,7 @@ def check_handles(handle_list):
     # Counts number of handles unable to scrape
     except_count = 0
     except_list = []
-    with tqdm(total=len(handle_list), file=sys.stdout) as pbar:
+    with tqdm(total=len(handle_list), file=sys.stdout, colour="GREEN") as pbar:
         for handle in handle_list:
             try:
                 auth_api.get_user(screen_name=handle)
@@ -242,7 +244,7 @@ def get_follower_list(handle):
     # Adds # at the end of multiple sheets to prevent saving over
     sheet_count = 0
     # Progress bar
-    with tqdm(total=num_followers, file=sys.stdout) as pbar:
+    with tqdm(total=num_followers, file=sys.stdout, colour="GREEN") as pbar:
         for i in range(1):
             for follower in Cursor(auth_api.get_followers, screen_name=handle).items(
                 num_followers
@@ -317,7 +319,7 @@ def get_follower_list(handle):
 
 def get_follower_count(file_name, account_list):
     # Progress bar
-    with tqdm(total=len(account_list), file=sys.stdout) as pbar:
+    with tqdm(total=len(account_list), file=sys.stdout, colour="GREEN") as pbar:
         for i in range(1):
             # Scrapes followers for each handle
             for handle in account_list:
