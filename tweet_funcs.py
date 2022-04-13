@@ -380,11 +380,13 @@ def get_follower_count(file_name, account_list):
 
 
 def open_sheet(cwd, file_name):
-    opensheet = input("Do you want to open the excel file? (y or n): \n").lower()
+    opensheet = " "
+    while (opensheet != "y") and (opensheet != "n"):
+        opensheet = input("Do you want to open the excel file? (y or n): \n").lower()
 
     if opensheet == "y":
         startfile(f"{cwd}/{file_name}")
         print("Opening file...\n")
         sleep(3)
     else:
-        pass
+        print("\n")
