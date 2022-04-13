@@ -1,6 +1,6 @@
 # TweetScraper
 
-![Python Version](https://img.shields.io/pypi/pyversions/pandas?style=for-the-badge)
+![GitHub Pipenv locked Python version](https://img.shields.io/github/pipenv/locked/python-version/durhamster/TweetScraper?style=for-the-badge)
 ![License](https://img.shields.io/github/license/Durhamster/TweetScraper?style=for-the-badge)
 
 A script using the Twitter API to do the following:
