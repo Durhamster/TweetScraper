@@ -1,6 +1,6 @@
 # TweetScraper
 
-![GitHub Pipenv locked Python version](https://img.shields.io/github/pipenv/locked/python-version/durhamster/TweetScraper?style=for-the-badge)
+![GitHub Pipenv locked Python version](https://img.shields.io/github/pipenv/locked/python-version/Durhamster/TweetScraper?color=blue&style=for-the-badge)
 ![License](https://img.shields.io/github/license/Durhamster/TweetScraper?style=for-the-badge)
 
 A script using the Twitter API to do the following:
@@ -20,6 +20,14 @@ Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the req
 
 ```bash
 pip install -r requirements.txt
+```
+
+or
+
+Using [pipenv](https://pipenv.pypa.io/en/latest/):
+
+```bash
+pipenv install
 ```
 
 ## Obtaining a Twitter Developer Key
