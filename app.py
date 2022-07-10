@@ -1,10 +1,12 @@
 from os import makedirs, path
 from rich import print
-from rich.console import Console
+from time import time
 from tweet_funcs import (
+    console,
     cwd,
     check_handles,
     format_tweets,
+    keyword_search,
     get_follower_count,
     get_follower_list,
     get_tweets_multi,
@@ -14,19 +16,17 @@ from tweet_funcs import (
 )
 
 
-console = Console()
-
 if __name__ == "__main__":
 
     # Creates scraped data folder if it does not exist
     if not path.exists("Data"):
         makedirs("Data")
 
-    single_multi = 0
+    user_option = 0
 
-    while single_multi not in (range(1, 6)):
+    while user_option not in (range(1, 7)):
         try:
-            single_multi = int(
+            user_option = int(
                 console.input(
                     "\n[cyan]Select an option[/cyan]:\n"
                     "1) Scrape a single account\n"
@@ -34,39 +34,43 @@ if __name__ == "__main__":
                     "3) Follower counts from a list of handles\n"
                     "4) Follower list and follower count for a single account\n"
                     "5) Check handles\n"
+                    "6) Scrape Tweets based on a keywords\n"
                 )
             )
         except ValueError:
             print("\n[red]Please enter a number.[/red]")
 
-        if single_multi in (range(1, 6)):
+        if user_option in (range(1, 7)):
             continue
 
     # Prompt user for Account Handle(s) then checks or scrapes them
 
-    if single_multi == 1:
+    if user_option == 1:
         handle = console.input(
             "\nEnter the handle of the account you wish to scrape from [red](do NOT include the @)[/red]:\n"
         )
+        start_time = time()
         get_tweets_single(handle)
-        format_tweets(handle, tweets_dict)
+        format_tweets(handle, start_time, tweets_dict)
 
-    elif single_multi == 2:
+    elif user_option == 2:
         file_name = console.input(
             "\nEnter a name for the excel file [red](do NOT include .xlsx)[/red]:\n"
         )
+        start_time = time()
         handle_list = load_text("Account Lists/handles.txt")
         get_tweets_multi(handle_list)
-        format_tweets(file_name, tweets_dict)
+        format_tweets(file_name, start_time, tweets_dict)
 
-    elif single_multi == 3:
+    elif user_option == 3:
         file_name = console.input(
             "\nEnter a name for the excel file [red](do NOT include .xlsx)[/red]:\n"
         )
+        start_time = time()
         handle_list = load_text("Account Lists/handles.txt")
-        get_follower_count(file_name, handle_list)
+        get_follower_count(file_name, handle_list, start_time)
 
-    elif single_multi == 4:
+    elif user_option == 4:
         user_warning = " "
         while (user_warning != "y") and (user_warning != "n"):
             user_warning = console.input(
@@ -82,11 +86,13 @@ if __name__ == "__main__":
             handle = console.input(
                 "\nEnter the handle of the account you wish to scrape from [red](do not include the @)[/red]:\n"
             )
-            get_follower_list(handle)
+            start_time = time()
+            get_follower_list(handle, start_time)
         else:
-            pass
+            print("\nRoger. Exiting...\n")
 
-    else:
+    elif user_option == 5:
+        start_time = time()
         handle_list = load_text("Account Lists/handles.txt")
         check_handles(handle_list)
         scrape_check = " "
@@ -99,8 +105,35 @@ if __name__ == "__main__":
                 "\nEnter a name for the excel file [red](do NOT include .xlsx)[/red]:\n"
             )
             get_tweets_multi(handle_list)
-            format_tweets(file_name, tweets_dict)
+            format_tweets(file_name, start_time, tweets_dict)
         else:
             print(
-                f"\nRoger. You can modify the list of handles by editing [cyan]{cwd}/Account Lists/handles.txt[/cyan]"
+                f"\nRoger. You can modify the list of handles by editing [cyan]{cwd}/Account Lists/handles.txt[/cyan]\n"
             )
+
+    elif user_option == 6:
+        keyword = console.input("\nEnter the keyword you want to search for:\n")
+        rt = 0
+
+        while rt not in (range(1, 4)):
+            try:
+                rt = int(
+                    console.input(
+                        "\n[cyan]Select a result type[/cyan]:\n"
+                        "1) Mixed\n"
+                        "2) Popular\n"
+                        "3) Recent\n"
+                    )
+                )
+            except ValueError:
+                print("\n[red]Please enter a number.[/red]")
+
+            if rt in (range(1, 4)):
+                continue
+
+        file_name = console.input(
+            "\nEnter a name for the excel file [red](do NOT include .xlsx)[/red]:\n"
+        )
+        start_time = time()
+        keyword_search(keyword, rt)
+        format_tweets(file_name, start_time, tweets_dict)

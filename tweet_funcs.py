@@ -4,13 +4,16 @@ import sys
 from datetime import datetime
 from dotenv import load_dotenv
 from os import getcwd, getenv, startfile
-from time import sleep
+from rich import print
+from rich.console import Console
+from time import sleep, time
 from tqdm import tqdm
 from tweepy import API, Cursor, OAuthHandler, TweepyException
 
 # Loads .env file
 load_dotenv()
 
+console = Console()
 cwd = getcwd()
 today = datetime.now()
 
@@ -39,6 +42,23 @@ accounts_dict = {
     "Verified": [],
 }
 
+"""Converts seconds at the end to show how long the scraping and formatting process took
+----------
+seconds : raw seconds from time() - start_time
+"""
+
+
+def convert_time(seconds):
+
+    seconds = seconds % (24 * 3600)
+    hour = seconds // 3600
+    seconds %= 3600
+    minutes = seconds // 60
+    seconds %= 60
+
+    return "%d:%02d:%02d" % (hour, minutes, seconds)
+
+
 """ Converts URLs to strings if Excel limit is exceeded (65,530)"""
 
 
@@ -58,6 +78,38 @@ def check_url_count(df, file_name):
         writer = pd.ExcelWriter(file_name, engine="xlsxwriter")
 
     return writer
+
+
+""" Gets tweets based on a keyword search """
+
+
+def keyword_search(keyword, rt):
+
+    if rt == 1:
+        results = "mixed"
+    elif rt == 2:
+        results = "popular"
+    elif rt == 3:
+        results = "recent"
+
+    tweets = auth_api.search_tweets(
+        keyword, result_type=results, lang="en", tweet_mode="extended", count=500
+    )
+
+    for tweet in tweets[:500]:
+        tweets_dict["Date"].append(tweet.created_at)
+        tweets_dict["Account Name"].append(tweet.user.name)
+        tweets_dict["Handle"].append(tweet.user.screen_name)
+        tweets_dict["URL"].append(
+            f"https://twitter.com/{tweet.user.screen_name}/status/{tweet.id}"
+        )
+        tweets_dict["Likes"].append(tweet.favorite_count)
+        tweets_dict["Retweets"].append(tweet.retweet_count)
+        tweets_dict["Text"].append(tweet.full_text)
+
+    print(f"\nA total of {len(tweets)} tweets were scraped for '{keyword}'.\n")
+
+    return tweets_dict
 
 
 """ Gets tweets from single handle """
@@ -144,7 +196,7 @@ def load_text(file):
 """ Formats the scraped tweets into an excel file """
 
 
-def format_tweets(handle, tweets_dict):
+def format_tweets(handle, start_time, tweets_dict):
     file_name = f"Data/{handle} {today.month}-{today.day}.xlsx"
     # Formats Tweets into Excel
     df = pd.DataFrame(tweets_dict)
@@ -180,7 +232,9 @@ def format_tweets(handle, tweets_dict):
 
     writer.save()
 
-    print(f"Data saved to {cwd}\{file_name}\n")
+    print(f"Data saved to [green]{cwd}\{file_name}[/green]\n")
+
+    print("Job completed in", convert_time(round(time() - start_time, 2)), "⏰")
 
     open_sheet(cwd, file_name)
 
@@ -218,7 +272,7 @@ def check_handles(handle_list):
 """ Get the list of followers for a single account """
 
 
-def get_follower_list(handle):
+def get_follower_list(handle, start_time):
     file_name = f"Data/{handle} followers {today.month}-{today.day}.xlsx"
     # Gets follower count of the user
     user = auth_api.get_user(screen_name=handle)
@@ -307,7 +361,9 @@ def get_follower_list(handle):
 
     writer.save()
 
-    print(f"Data saved to {cwd}\{file_name}\n")
+    print("Job completed in", convert_time(round(time() - start_time, 2)), "⏰")
+
+    print(f"Data saved to [green]{cwd}\{file_name}[/green]\n")
 
     open_sheet(cwd, file_name)
 
@@ -317,7 +373,7 @@ def get_follower_list(handle):
 """ Gets the follower count of a list of handles """
 
 
-def get_follower_count(file_name, account_list):
+def get_follower_count(file_name, account_list, start_time):
     # Progress bar
     with tqdm(total=len(account_list), file=sys.stdout, colour="GREEN") as pbar:
         for i in range(1):
@@ -371,7 +427,9 @@ def get_follower_count(file_name, account_list):
 
             writer.save()
 
-    print(f"Data saved to {cwd}\{file_name}\n")
+    print("Job completed in", convert_time(round(time() - start_time, 2)), "⏰")
+
+    print(f"Data saved to [green]{cwd}\{file_name}[/green]\n")
 
     open_sheet(cwd, file_name)
 
@@ -380,11 +438,13 @@ def get_follower_count(file_name, account_list):
 
 
 def open_sheet(cwd, file_name):
-    opensheet = " "
-    while (opensheet != "y") and (opensheet != "n"):
-        opensheet = input("Do you want to open the excel file? (y or n): \n").lower()
+    openSheet = " "
+    while (openSheet != "y") and (openSheet != "n"):
+        openSheet = console.input(
+            "\nDo you want to open the excel file? [cyan](y or n)[/cyan]: \n"
+        ).lower()
 
-    if opensheet == "y":
+    if openSheet == "y":
         startfile(f"{cwd}/{file_name}")
         print("Opening file...\n")
         sleep(3)
